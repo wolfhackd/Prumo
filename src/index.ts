@@ -7,8 +7,10 @@ import cors from '@fastify/cors';
 //Configuration
 const server = fastify();
 server.register(cookie);
+
+const origin = process.env.ORIGIN || '*';
 server.register(cors,{
-    origin: '*',
+    origin: origin,
     credentials: true,
 });
 server.setValidatorCompiler(validatorCompiler);
