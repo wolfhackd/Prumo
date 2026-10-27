@@ -9,6 +9,7 @@ const server = fastify();
 server.register(cookie);
 server.register(cors,{
     origin: '*',
+    credentials: true,
 });
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
