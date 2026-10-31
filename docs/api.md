@@ -14,6 +14,8 @@ Os exemplos de resposta abaixo refletem o formato enviado pelos controllers. Err
 
 | Método | Caminho | Autenticação | Descrição |
 | --- | --- | --- | --- |
+| `GET` | `/health` | Não | Verifica se a API está em execução. |
+| `GET` | `/auth/status` | Sim | Verifica se o cookie JWT da sessão ainda é válido. |
 | `POST` | `/owner/create` | Não | Cadastra um responsável. |
 | `POST` | `/owner/login` | Não | Autentica por e-mail ou CPF e define o cookie de sessão. |
 | `GET` | `/establishment/` | Não | Lista estabelecimentos com paginação, serviços e horários. |
@@ -31,6 +33,39 @@ Os exemplos de resposta abaixo refletem o formato enviado pelos controllers. Err
 | `PATCH` | `/appointment/edit` | Não | Atualiza um agendamento do cliente, validando CPF, disponibilidade e dados do serviço/estabelecimento. |
 | `PUT` | `/appointment/edit` | Não | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
 | `DELETE` | `/appointment/delete` | Não | Remove um agendamento identificado por `appointmentId` e `cpf`. |
+
+## Saúde e autenticação
+
+### `GET /health`
+
+Rota pública de liveness, útil para verificar se o processo da API está respondendo.
+
+Sucesso: `200 OK`.
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### `GET /auth/status`
+
+Verifica o cookie `token` usando a mesma validação JWT das demais rotas protegidas. Em caso de sucesso, retorna os dados do responsável autenticado, sem senha ou estabelecimentos. Sucesso: `200 OK`.
+
+```json
+{
+  "authenticated": true,
+  "user": {
+    "id": "UUID_DO_RESPONSAVEL",
+    "name": "Ana Souza",
+    "cpf": "12345678901",
+    "phone": "+5511999999999",
+    "email": "ana@example.com"
+  }
+}
+```
+
+Sem cookie, retorna `401 Unauthorized` com `{"message":"User not logged"}`. Token inválido ou expirado retorna `401` com `{"message":"Token invalid or expired"}`.
 
 ## Responsáveis
 
