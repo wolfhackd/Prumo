@@ -87,4 +87,14 @@ export class EstablishmentController {
             return reply.status(400).send({message: "Error getting establishments!", error: error.message})
         }
     }
+
+    async getEstablishmentsByOwner(request: FastifyRequest, reply: FastifyReply){
+        try{
+            const ownerId = request.user.id as string;
+            const establishments = await this.service.getEstablishmentsByOwner(ownerId);
+            return reply.status(200).send({ establishments });
+        } catch(error:any){
+            return reply.status(400).send({message: "Error getting owner's establishments!", error: error.message})
+        }
+    }
 }

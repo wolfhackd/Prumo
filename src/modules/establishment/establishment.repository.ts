@@ -51,6 +51,16 @@ export class EstablishmentRepository{
         })
     }
 
+    async getEstablishmentsByOwner(ownerId: string){
+        return this.db.establishment.findMany({
+            where: { ownerId },
+            include:{
+                services: true,
+                businessHours: true,
+            }
+        })
+    }
+
     async updateEstablishment(
         id: string,
         data: {

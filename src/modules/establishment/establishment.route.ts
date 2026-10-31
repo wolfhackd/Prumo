@@ -33,6 +33,7 @@ export const establishmentRoute = async (app: FastifyInstance) => {
             body: RegisterBusinessHourSchema
         }
     },controller.registerBusinessHour.bind(controller));
+    app.get("/owner", { preHandler: authMiddleware }, controller.getEstablishmentsByOwner.bind(controller));
     app.get("/", {
         schema: {
             querystring: GetEstablishmentsQueryInput

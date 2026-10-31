@@ -27,6 +27,7 @@ describe('EstablishmentService',()=>{
         createEstablishment: vi.fn(),
         getEstablishmentByEmail: vi.fn(),
         getEstablishmentById: vi.fn(),
+        getEstablishmentsByOwner: vi.fn(),
         updateEstablishment: vi.fn(),
         registerBusinessHour: vi.fn()
        } as unknown as Mocked<EstablishmentRepository>;
@@ -165,6 +166,15 @@ describe('EstablishmentService',()=>{
 
         await expect(service.getEstablishmentById("establishment-id-123")).resolves.toEqual(expectedEstablishment);
         expect(mockEstablishmentRepository.getEstablishmentById).toHaveBeenCalledWith("establishment-id-123");
+    })
+
+    it("should return establishments belonging to an owner", async ()=>{
+        const ownerId = "owner-id-123";
+        const expectedEstablishments = [establishmentFixture("establishment-id-123")];
+        mockEstablishmentRepository.getEstablishmentsByOwner.mockResolvedValue(expectedEstablishments);
+
+        await expect(service.getEstablishmentsByOwner(ownerId)).resolves.toEqual(expectedEstablishments);
+        expect(mockEstablishmentRepository.getEstablishmentsByOwner).toHaveBeenCalledWith(ownerId);
     })
 
     it("should update establishment information when owner owns the establishment", async ()=>{

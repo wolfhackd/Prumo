@@ -37,6 +37,10 @@ export class EstablishmentService {
         return establishments;
     }
 
+    async getEstablishmentsByOwner(ownerId: string){
+        return await this.repository.getEstablishmentsByOwner(ownerId);
+    }
+
     async updateEstablishment(data: UpdateEstablishmentWithOwnerIdInputDTO) {
         const owner = await this.ownerRepository.getOwnerById(data.ownerId);
         if(!owner){

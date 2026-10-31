@@ -17,6 +17,7 @@ Respostas de erro de validação seguem o tratamento padrão do Fastify. Erros t
 | `POST` | `/owner/create` | Não | Cadastra um responsável. |
 | `POST` | `/owner/login` | Não | Autentica por e-mail ou CPF e define o cookie de sessão. |
 | `GET` | `/establishment/:id` | Não | Consulta um estabelecimento, seus serviços e horários. |
+| `GET` | `/establishment/owner` | Sim | Lista os estabelecimentos do responsável autenticado. |
 | `POST` | `/establishment/create` | Sim | Cadastra um estabelecimento para o responsável autenticado. |
 | `PATCH` | `/establishment/update` | Sim | Atualiza dados de um estabelecimento próprio. |
 | `PUT` | `/establishment/update` | Sim | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
@@ -70,6 +71,10 @@ O cookie é `httpOnly`, `sameSite=lax` e tem `path=/`. O projeto precisa da vari
 ### `GET /establishment/:id`
 
 O parâmetro `id` precisa ser um UUID. Sucesso: `200 OK`, com o objeto `establishment`, incluindo `services` e `businessHours`. Se não existir, retorna `404 Not Found`.
+
+### `GET /establishment/owner`
+
+Requer sessão de responsável. Retorna `200 OK` com `{ "establishments": [...] }`, incluindo `services` e `businessHours` de cada estabelecimento. A lista é filtrada pelo responsável autenticado; se ele não tiver estabelecimentos, retorna uma lista vazia.
 
 ### `POST /establishment/create`
 
