@@ -8,7 +8,7 @@ API REST para cadastro de responsáveis e estabelecimentos, oferta de serviços 
 
 - Cadastro de responsáveis e autenticação por e-mail ou CPF.
 - Sessão de responsável por cookie HTTP-only com token JWT.
-- Cadastro, consulta e atualização de estabelecimentos.
+- Cadastro e atualização de estabelecimentos; consulta individual, listagem paginada pública e listagem dos estabelecimentos do responsável autenticado.
 - Cadastro de horários de funcionamento por dia da semana.
 - Cadastro, atualização e exclusão de serviços associados a um estabelecimento.
 - Criação pública de agendamentos com cadastro ou reaproveitamento do cliente pelo CPF.

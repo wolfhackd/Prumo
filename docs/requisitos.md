@@ -26,6 +26,7 @@ Facilitar o agendamento de serviços e o gerenciamento de estabelecimentos, serv
 | RF03 | Comunicar-se com os clientes. | **Não implementado** — não há integração ou envio de notificações. |
 | RF04 | Verificar horários disponíveis. | **Parcial** — a validação acontece ao criar e atualizar um agendamento; não há endpoint para consultar disponibilidade. |
 | RF05 | Excluir agendamentos. | **Parcial** — há rota de exclusão com validação por `appointmentId` e `cpf`, mas ainda não há fluxo completo de cancelamento por status/cliente. |
+| RF06 | Consultar estabelecimentos e seus serviços/horários. | **Implementado no backend** — há consulta individual, listagem pública paginada e listagem dos estabelecimentos do responsável autenticado. |
 
 ## Requisitos não funcionais
 
