@@ -93,6 +93,7 @@ npm run dev
 ```
 
 O servidor inicia na porta `3000`. O ponto de entrada é `src/index.ts`; o processo de desenvolvimento reinicia ao detectar mudanças.
+A documentação interativa da API fica disponível em `http://localhost:3000/documentation`.
 
 Para compilar o backend para `dist/` e iniciar a versão compilada:
 

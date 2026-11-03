@@ -13,21 +13,25 @@ const controller = new AppointmentController(service);
 export const appointmentRoute = (app: FastifyInstance) =>{
     app.post('/create',{
         schema:{
+            tags: ["Agendamentos"],
             body: createAppointmentSchema
         }
     }, controller.createAppointment.bind(controller));
     app.patch('/edit', {
         schema: {
+            tags: ["Agendamentos"],
             body: updateAppointmentSchema,
         },
     }, controller.updateAppointment.bind(controller));
     app.put('/edit', {
         schema: {
+            tags: ["Agendamentos"],
             body: updateAppointmentSchema,
         },
     }, controller.updateAppointment.bind(controller));
     app.delete('/delete', {
         schema: {
+            tags: ["Agendamentos"],
             body: deleteAppointmentSchema,
         },
     }, controller.deleteAppointment.bind(controller));
