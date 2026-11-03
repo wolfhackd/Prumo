@@ -29,7 +29,10 @@ describe('EstablishmentService',()=>{
         getEstablishmentById: vi.fn(),
         getEstablishmentsByOwner: vi.fn(),
         updateEstablishment: vi.fn(),
-        registerBusinessHour: vi.fn()
+        registerBusinessHour: vi.fn(),
+        getBusinessHourById: vi.fn(),
+        updateBusinessHour: vi.fn(),
+        deleteBusinessHour: vi.fn(),
        } as unknown as Mocked<EstablishmentRepository>;
 
        mockOwnerRepository = {
@@ -407,6 +410,145 @@ describe('EstablishmentService',()=>{
         await expect(service.registerBusinessHour(payload)).rejects.toThrow("Day of week must be between 1 and 7!");
         expect(mockEstablishmentRepository.registerBusinessHour).not.toHaveBeenCalled();
     })
+
+    it("should update a business hour when the owner owns its establishment", async () => {
+        const businessHour = {
+            id: "business-hour-id-123",
+            establishmentId: "establishment-id-123",
+            dayOfWeek: 2,
+            openingTime: "09:00",
+            closingTime: "18:00",
+        };
+        const payload = {
+            businessHourId: businessHour.id,
+            openingTime: "10:00",
+            ownerId: "owner-id-123",
+        };
+        const updatedBusinessHour = { ...businessHour, openingTime: payload.openingTime };
+
+        mockOwnerRepository.getOwnerById.mockResolvedValue({
+            id: "owner-id-123",
+            name: "Owner Test",
+            cpf: "12345678900",
+            phone: "1234567890",
+            email: "owner@example.com",
+            password: "hashedpassword",
+            establishments: [establishmentFixture(businessHour.establishmentId)],
+        });
+        mockEstablishmentRepository.getBusinessHourById.mockResolvedValue(businessHour);
+        mockEstablishmentRepository.updateBusinessHour.mockResolvedValue(updatedBusinessHour);
+
+        await expect(service.updateBusinessHour(payload)).resolves.toEqual(updatedBusinessHour);
+        expect(mockEstablishmentRepository.updateBusinessHour).toHaveBeenCalledWith(
+            businessHour.id,
+            { openingTime: payload.openingTime },
+        );
+    });
+
+    it("should reject updating a business hour owned by another user", async () => {
+        const businessHour = {
+            id: "business-hour-id-123",
+            establishmentId: "establishment-id-123",
+            dayOfWeek: 2,
+            openingTime: "09:00",
+            closingTime: "18:00",
+        };
+        mockOwnerRepository.getOwnerById.mockResolvedValue({
+            id: "owner-id-123",
+            name: "Owner Test",
+            cpf: "12345678900",
+            phone: "1234567890",
+            email: "owner@example.com",
+            password: "hashedpassword",
+            establishments: [establishmentFixture("another-establishment-id")],
+        });
+        mockEstablishmentRepository.getBusinessHourById.mockResolvedValue(businessHour);
+
+        await expect(service.updateBusinessHour({
+            businessHourId: businessHour.id,
+            openingTime: "10:00",
+            ownerId: "owner-id-123",
+        })).rejects.toThrow("User is not the owner of the establishment!");
+        expect(mockEstablishmentRepository.updateBusinessHour).not.toHaveBeenCalled();
+    });
+
+    it("should reject a business hour update that makes opening later than closing", async () => {
+        const businessHour = {
+            id: "business-hour-id-123",
+            establishmentId: "establishment-id-123",
+            dayOfWeek: 2,
+            openingTime: "09:00",
+            closingTime: "18:00",
+        };
+        mockOwnerRepository.getOwnerById.mockResolvedValue({
+            id: "owner-id-123",
+            name: "Owner Test",
+            cpf: "12345678900",
+            phone: "1234567890",
+            email: "owner@example.com",
+            password: "hashedpassword",
+            establishments: [establishmentFixture(businessHour.establishmentId)],
+        });
+        mockEstablishmentRepository.getBusinessHourById.mockResolvedValue(businessHour);
+
+        await expect(service.updateBusinessHour({
+            businessHourId: businessHour.id,
+            openingTime: "19:00",
+            ownerId: "owner-id-123",
+        })).rejects.toThrow("Opening time must be before closing time!");
+        expect(mockEstablishmentRepository.updateBusinessHour).not.toHaveBeenCalled();
+    });
+
+    it("should delete a business hour when the owner owns its establishment", async () => {
+        const businessHour = {
+            id: "business-hour-id-123",
+            establishmentId: "establishment-id-123",
+            dayOfWeek: 2,
+            openingTime: "09:00",
+            closingTime: "18:00",
+        };
+        const payload = { businessHourId: businessHour.id, ownerId: "owner-id-123" };
+        mockOwnerRepository.getOwnerById.mockResolvedValue({
+            id: "owner-id-123",
+            name: "Owner Test",
+            cpf: "12345678900",
+            phone: "1234567890",
+            email: "owner@example.com",
+            password: "hashedpassword",
+            establishments: [establishmentFixture(businessHour.establishmentId)],
+        });
+        mockEstablishmentRepository.getBusinessHourById.mockResolvedValue(businessHour);
+        mockEstablishmentRepository.deleteBusinessHour.mockResolvedValue(businessHour);
+
+        await expect(service.deleteBusinessHour(payload)).resolves.toEqual(businessHour);
+        expect(mockEstablishmentRepository.deleteBusinessHour).toHaveBeenCalledWith(businessHour.id);
+    });
+
+    it("should reject deleting a business hour owned by another user", async () => {
+        const businessHour = {
+            id: "business-hour-id-123",
+            establishmentId: "establishment-id-123",
+            dayOfWeek: 2,
+            openingTime: "09:00",
+            closingTime: "18:00",
+        };
+        mockOwnerRepository.getOwnerById.mockResolvedValue({
+            id: "owner-id-123",
+            name: "Owner Test",
+            cpf: "12345678900",
+            phone: "1234567890",
+            email: "owner@example.com",
+            password: "hashedpassword",
+            establishments: [establishmentFixture("another-establishment-id")],
+        });
+        mockEstablishmentRepository.getBusinessHourById.mockResolvedValue(businessHour);
+
+        await expect(service.deleteBusinessHour({
+            businessHourId: businessHour.id,
+            ownerId: "owner-id-123",
+        })).rejects.toThrow("User is not the owner of the establishment!");
+        expect(mockEstablishmentRepository.deleteBusinessHour).not.toHaveBeenCalled();
+    });
 
     it("should return only business hours for the selected day", async ()=>{
         const establishment = {

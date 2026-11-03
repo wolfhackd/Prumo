@@ -1,6 +1,6 @@
 import type { OwnerRepository } from "../owner/owner.repository.js";
 import type { EstablishmentRepository } from "./establishment.repository.js";
-import type { CreateEstablishmentWithOwnerIdInputDTO, RegisterBusinessHourWithOwnerIdInputDTO, UpdateEstablishmentWithOwnerIdInputDTO } from "./establishment.types.js";
+import type { CreateEstablishmentWithOwnerIdInputDTO, DeleteBusinessHourWithOwnerIdInputDTO, RegisterBusinessHourWithOwnerIdInputDTO, UpdateBusinessHourWithOwnerIdInputDTO, UpdateEstablishmentWithOwnerIdInputDTO } from "./establishment.types.js";
 
 
 export class EstablishmentService {
@@ -126,6 +126,56 @@ export class EstablishmentService {
         
         //salvar horário
         return await this.repository.registerBusinessHour(data);
+    }
+
+    async updateBusinessHour(data: UpdateBusinessHourWithOwnerIdInputDTO) {
+        const owner = await this.ownerRepository.getOwnerById(data.ownerId);
+        if (!owner) {
+            throw new Error("Owner not found!");
+        }
+
+        const businessHour = await this.repository.getBusinessHourById(data.businessHourId);
+        if (!businessHour) {
+            throw new Error("Business hour not found!");
+        }
+
+        if (!owner.establishments.some(establishment => establishment.id === businessHour.establishmentId)) {
+            throw new Error("User is not the owner of the establishment!");
+        }
+
+        const openingTime = data.openingTime ?? businessHour.openingTime;
+        const closingTime = data.closingTime ?? businessHour.closingTime;
+        if (openingTime >= closingTime) {
+            throw new Error("Opening time must be before closing time!");
+        }
+
+        const updateData = Object.fromEntries(
+            Object.entries({
+                dayOfWeek: data.dayOfWeek,
+                openingTime: data.openingTime,
+                closingTime: data.closingTime,
+            }).filter(([, value]) => value !== undefined)
+        );
+
+        return this.repository.updateBusinessHour(data.businessHourId, updateData);
+    }
+
+    async deleteBusinessHour(data: DeleteBusinessHourWithOwnerIdInputDTO) {
+        const owner = await this.ownerRepository.getOwnerById(data.ownerId);
+        if (!owner) {
+            throw new Error("Owner not found!");
+        }
+
+        const businessHour = await this.repository.getBusinessHourById(data.businessHourId);
+        if (!businessHour) {
+            throw new Error("Business hour not found!");
+        }
+
+        if (!owner.establishments.some(establishment => establishment.id === businessHour.establishmentId)) {
+            throw new Error("User is not the owner of the establishment!");
+        }
+
+        return this.repository.deleteBusinessHour(data.businessHourId);
     }
 
     async isOpenInDay(day: number,establishmentId: string){

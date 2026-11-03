@@ -87,4 +87,23 @@ export class EstablishmentRepository{
             }
         })
     }
-} 
+
+    async getBusinessHourById(id: string) {
+        return this.db.businessHour.findUnique({
+            where: { id },
+        });
+    }
+
+    async updateBusinessHour(id: string, data: { dayOfWeek?: number; openingTime?: string; closingTime?: string }) {
+        return this.db.businessHour.update({
+            where: { id },
+            data,
+        });
+    }
+
+    async deleteBusinessHour(id: string) {
+        return this.db.businessHour.delete({
+            where: { id },
+        });
+    }
+}

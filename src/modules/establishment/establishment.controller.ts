@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { EstablishmentService } from "./establishment.service.js";
-import type { CreateEstablishmentInputDTO, CreateEstablishmentWithOwnerIdInputDTO, GetEstablishmentByIdParamsDTO, GetEstablishmentsQueryInputDTO, RegisterBusinessHourInputDTO, RegisterBusinessHourWithOwnerIdInputDTO, UpdateEstablishmentInputDTO, UpdateEstablishmentWithOwnerIdInputDTO } from "./establishment.types.js";
+import type { CreateEstablishmentInputDTO, CreateEstablishmentWithOwnerIdInputDTO, DeleteBusinessHourInputDTO, DeleteBusinessHourWithOwnerIdInputDTO, GetEstablishmentByIdParamsDTO, GetEstablishmentsQueryInputDTO, RegisterBusinessHourInputDTO, RegisterBusinessHourWithOwnerIdInputDTO, UpdateBusinessHourInputDTO, UpdateBusinessHourWithOwnerIdInputDTO, UpdateEstablishmentInputDTO, UpdateEstablishmentWithOwnerIdInputDTO } from "./establishment.types.js";
 
 
 
@@ -75,6 +75,35 @@ export class EstablishmentController {
 
         } catch (error:any) {
             return reply.status(400).send({message: "Error registering business hour!", error: error.message})
+        }
+    }
+
+    async updateBusinessHour(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const data = request.body as UpdateBusinessHourInputDTO;
+            const ownerId = request.user.id as string;
+            const payload: UpdateBusinessHourWithOwnerIdInputDTO = { ...data, ownerId };
+            const businessHour = await this.service.updateBusinessHour(payload);
+
+            return reply.status(200).send({
+                message: "Business hour updated successfully!",
+                businessHour,
+            });
+        } catch (error: any) {
+            return reply.status(400).send({ message: "Error updating business hour!", error: error.message });
+        }
+    }
+
+    async deleteBusinessHour(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const data = request.body as DeleteBusinessHourInputDTO;
+            const ownerId = request.user.id as string;
+            const payload: DeleteBusinessHourWithOwnerIdInputDTO = { ...data, ownerId };
+            await this.service.deleteBusinessHour(payload);
+
+            return reply.status(200).send({ message: "Business hour deleted successfully!" });
+        } catch (error: any) {
+            return reply.status(400).send({ message: "Error deleting business hour!", error: error.message });
         }
     }
 

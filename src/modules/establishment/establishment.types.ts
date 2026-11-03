@@ -45,6 +45,51 @@ export const RegisterBusinessHourWithOwnerIdInputSchema = z.object({
 
 export type RegisterBusinessHourWithOwnerIdInputDTO = z.infer<typeof RegisterBusinessHourWithOwnerIdInputSchema>;
 
+const BusinessHourUpdateFieldsSchema = z.object({
+    dayOfWeek: z.number().int().min(1).max(7).optional(),
+    openingTime: z.string().regex(timeRegex, "Opening time must use HH:MM format").optional(),
+    closingTime: z.string().regex(timeRegex, "Closing time must use HH:MM format").optional(),
+});
+
+const hasBusinessHourUpdates = (data: {
+    dayOfWeek?: number | undefined;
+    openingTime?: string | undefined;
+    closingTime?: string | undefined;
+}) => [data.dayOfWeek, data.openingTime, data.closingTime].some((value) => value !== undefined);
+
+export const UpdateBusinessHourSchema = z.object({
+    businessHourId: z.uuid("Business hour id is required"),
+    ...BusinessHourUpdateFieldsSchema.shape,
+}).refine(hasBusinessHourUpdates, {
+    message: "At least one field must be provided to update the business hour.",
+    path: ["dayOfWeek"],
+});
+
+export type UpdateBusinessHourInputDTO = z.infer<typeof UpdateBusinessHourSchema>;
+
+export const UpdateBusinessHourWithOwnerIdSchema = z.object({
+    businessHourId: z.uuid("Business hour id is required"),
+    ...BusinessHourUpdateFieldsSchema.shape,
+    ownerId: z.uuid("Owner id is required"),
+}).refine(hasBusinessHourUpdates, {
+    message: "At least one field must be provided to update the business hour.",
+    path: ["dayOfWeek"],
+});
+
+export type UpdateBusinessHourWithOwnerIdInputDTO = z.infer<typeof UpdateBusinessHourWithOwnerIdSchema>;
+
+export const DeleteBusinessHourSchema = z.object({
+    businessHourId: z.uuid("Business hour id is required"),
+});
+
+export type DeleteBusinessHourInputDTO = z.infer<typeof DeleteBusinessHourSchema>;
+
+export const DeleteBusinessHourWithOwnerIdSchema = DeleteBusinessHourSchema.extend({
+    ownerId: z.uuid("Owner id is required"),
+});
+
+export type DeleteBusinessHourWithOwnerIdInputDTO = z.infer<typeof DeleteBusinessHourWithOwnerIdSchema>;
+
 export const UpdateEstablishmentSchema = z.object({
     establishmentId: z.uuid("Establishment id is required"),
     name: z.string().optional(),

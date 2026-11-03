@@ -26,6 +26,8 @@ Os exemplos de resposta abaixo refletem o formato enviado pelos controllers. Err
 | `PUT` | `/establishment/update` | Sim | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
 | `PATCH` | `/establishment/edit` | Sim | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
 | `POST` | `/establishment/register-hour` | Sim | Registra um horário de funcionamento para estabelecimento próprio. |
+| `PATCH` | `/establishment/update-hour` | Sim | Atualiza um horário de funcionamento próprio. |
+| `DELETE` | `/establishment/delete-hour` | Sim | Remove um horário de funcionamento próprio. |
 | `POST` | `/service/create` | Sim | Cadastra um serviço em estabelecimento próprio. |
 | `PATCH` | `/service/edit` | Sim | Atualiza um ou mais campos de um serviço próprio. |
 | `DELETE` | `/service/delete` | Sim | Remove um serviço pertencente ao responsável autenticado. |
@@ -258,6 +260,56 @@ Requer sessão de responsável:
 ```
 
 Erros de negócio retornam `400 Bad Request`, por exemplo `{"message":"Error registering business hour!","error":"Invalid time format!"}`.
+
+### `PATCH /establishment/update-hour`
+
+Requer sessão de responsável. Informe o identificador do horário e ao menos um campo para atualizar:
+
+```json
+{
+  "businessHourId": "UUID_DO_HORARIO",
+  "dayOfWeek": 2,
+  "openingTime": "10:00",
+  "closingTime": "18:00"
+}
+```
+
+`businessHourId` deve ser um UUID. `dayOfWeek` é opcional e deve ser um inteiro de `1` (segunda-feira) a `7` (domingo). Os horários são opcionais, no formato 24 horas `HH:MM`; quando atualizados, a abertura deve continuar anterior ao fechamento, inclusive considerando os valores já cadastrados dos campos não enviados. O responsável autenticado precisa ser dono do estabelecimento associado ao horário. Sucesso: `200 OK`:
+
+```json
+{
+  "message": "Business hour updated successfully!",
+  "businessHour": {
+    "id": "UUID_DO_HORARIO",
+    "establishmentId": "UUID_DO_ESTABELECIMENTO",
+    "dayOfWeek": 2,
+    "openingTime": "10:00",
+    "closingTime": "18:00"
+  }
+}
+```
+
+Erros de validação retornam `400 Bad Request`; erros de negócio também retornam `400`, por exemplo `{"message":"Error updating business hour!","error":"User is not the owner of the establishment!"}`.
+
+### `DELETE /establishment/delete-hour`
+
+Requer sessão de responsável. Informe o horário a remover:
+
+```json
+{
+  "businessHourId": "UUID_DO_HORARIO"
+}
+```
+
+O `businessHourId` deve ser um UUID e o responsável autenticado precisa ser dono do estabelecimento associado ao horário. Sucesso: `200 OK`:
+
+```json
+{
+  "message": "Business hour deleted successfully!"
+}
+```
+
+Erros de validação retornam `400 Bad Request`; erros de negócio também retornam `400`, por exemplo `{"message":"Error deleting business hour!","error":"Business hour not found!"}`.
 
 ## Serviços
 
