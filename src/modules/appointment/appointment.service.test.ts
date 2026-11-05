@@ -27,6 +27,7 @@ describe("AppointmentService", () => {
 
         appointmentRepository = {
             create: vi.fn(),
+            getUpcomingByEstablishment: vi.fn(),
             getByIdAndCpf: vi.fn(),
             updateByIdAndCpf: vi.fn(),
             deleteByIdAndCpf: vi.fn(),
@@ -54,6 +55,38 @@ describe("AppointmentService", () => {
 
     afterEach(() => {
         vi.useRealTimers();
+    });
+
+    it("lists upcoming appointments only for the establishment owner", async () => {
+        establishmentService.getEstablishmentById.mockResolvedValue({
+            id: input.establishmentId,
+            ownerId: "owner-id",
+        } as never);
+        const now = new Date();
+        const appointments = [{ id: "appointment-id" }];
+        appointmentRepository.getUpcomingByEstablishment.mockResolvedValue(appointments as never);
+
+        const result = await service.listUpcomingByEstablishment(input.establishmentId, "owner-id");
+
+        expect(establishmentService.getEstablishmentById).toHaveBeenCalledWith(input.establishmentId);
+        expect(appointmentRepository.getUpcomingByEstablishment).toHaveBeenCalledWith(
+            input.establishmentId,
+            "owner-id",
+            now,
+        );
+        expect(result).toBe(appointments);
+    });
+
+    it("rejects listing appointments for an establishment owned by someone else", async () => {
+        establishmentService.getEstablishmentById.mockResolvedValue({
+            id: input.establishmentId,
+            ownerId: "another-owner",
+        } as never);
+
+        await expect(
+            service.listUpcomingByEstablishment(input.establishmentId, "owner-id"),
+        ).rejects.toThrow("User is not the owner of the establishment!");
+        expect(appointmentRepository.getUpcomingByEstablishment).not.toHaveBeenCalled();
     });
 
     it("creates an appointment for the next occurrence and returns the persisted record", async () => {

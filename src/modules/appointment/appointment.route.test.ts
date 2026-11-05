@@ -3,27 +3,36 @@ import { serializerCompiler, validatorCompiler } from "@fastify/type-provider-zo
 import fastify, { type FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { appointmentRoute } from "./appointment.route.js";
+import { TokenService } from "../../utils/tokenService.js";
 
 const repository = vi.hoisted(() => ({
     create: vi.fn(),
+    getUpcomingByEstablishment: vi.fn(),
     getByIdAndCpf: vi.fn(),
     updateByIdAndCpf: vi.fn(),
     deleteByIdAndCpf: vi.fn(),
 }));
 
+const establishment = vi.hoisted(() => ({
+    getEstablishmentById: vi.fn(),
+}));
+
 vi.mock("./appointment.repository", () => ({
     AppointmentRepository: class {
         create = repository.create;
+        getUpcomingByEstablishment = repository.getUpcomingByEstablishment;
         getByIdAndCpf = repository.getByIdAndCpf;
         updateByIdAndCpf = repository.updateByIdAndCpf;
         deleteByIdAndCpf = repository.deleteByIdAndCpf;
     },
 }));
 
-vi.mock("../establishment/establishment.route", () => ({ service: {} }));
+vi.mock("../establishment/establishment.route", () => ({ service: establishment }));
 vi.mock("../service/service.route", () => ({ service: {} }));
 
 const appointmentId = "00000000-0000-4000-8000-000000000001";
+const establishmentId = "00000000-0000-4000-8000-000000000003";
+const ownerId = "00000000-0000-4000-8000-000000000004";
 const cpf = "12345678901";
 
 describe("appointment routes", () => {
@@ -31,6 +40,9 @@ describe("appointment routes", () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
+        vi.stubEnv("JWT_SECRET", "appointment-route-test-secret");
+        establishment.getEstablishmentById.mockResolvedValue({ id: establishmentId, ownerId });
+        repository.getUpcomingByEstablishment.mockResolvedValue([]);
         repository.getByIdAndCpf.mockResolvedValue({
             id: appointmentId,
             data: new Date("2026-10-05T10:00:00.000Z"),
@@ -49,6 +61,50 @@ describe("appointment routes", () => {
 
     afterEach(async () => {
         await app.close();
+        vi.unstubAllEnvs();
+    });
+
+    it("requires authentication to list establishment appointments", async () => {
+        const response = await app.inject({
+            method: "GET",
+            url: `/establishment/${establishmentId}`,
+        });
+
+        expect(response.statusCode).toBe(401);
+        expect(repository.getUpcomingByEstablishment).not.toHaveBeenCalled();
+    });
+
+    it("lists upcoming appointments for the authenticated establishment owner", async () => {
+        const appointments = [{ id: appointmentId }];
+        repository.getUpcomingByEstablishment.mockResolvedValue(appointments);
+        const response = await app.inject({
+            method: "GET",
+            url: `/establishment/${establishmentId}`,
+            cookies: { token: TokenService.generateToken({ id: ownerId }) },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.json()).toEqual({ appointments });
+        expect(repository.getUpcomingByEstablishment).toHaveBeenCalledWith(
+            establishmentId,
+            ownerId,
+            expect.any(Date),
+        );
+    });
+
+    it("does not list appointments for an establishment owned by another user", async () => {
+        establishment.getEstablishmentById.mockResolvedValue({
+            id: establishmentId,
+            ownerId: "00000000-0000-4000-8000-000000000005",
+        });
+        const response = await app.inject({
+            method: "GET",
+            url: `/establishment/${establishmentId}`,
+            cookies: { token: TokenService.generateToken({ id: ownerId }) },
+        });
+
+        expect(response.statusCode).toBe(403);
+        expect(repository.getUpcomingByEstablishment).not.toHaveBeenCalled();
     });
 
     it("updates an appointment by appointment ID and client CPF", async () => {

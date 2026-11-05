@@ -7,6 +7,27 @@ export class AppointmentRepository{
         private readonly db: typeof prisma = prisma
     ){}
 
+    async getUpcomingByEstablishment(establishmentId: string, ownerId: string, from: Date) {
+        return this.db.appointment.findMany({
+            where: {
+                establishmentId,
+                establishment: {
+                    is: { ownerId },
+                },
+                data: {
+                    gte: from,
+                },
+            },
+            orderBy: {
+                data: "asc",
+            },
+            include: {
+                client: true,
+                service: true,
+            },
+        });
+    }
+
     async create(
         data: CreateAppointmentInput,
         appointmentDate: Date,

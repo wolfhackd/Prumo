@@ -32,6 +32,7 @@ Os exemplos de resposta abaixo refletem o formato enviado pelos controllers. Err
 | `PATCH` | `/service/edit` | Sim | Atualiza um ou mais campos de um serviço próprio. |
 | `DELETE` | `/service/delete` | Sim | Remove um serviço pertencente ao responsável autenticado. |
 | `POST` | `/appointment/create` | Não | Cria um agendamento após validar serviço, funcionamento e conflitos. |
+| `GET` | `/appointment/establishment/:establishmentId` | Sim | Lista agendamentos futuros do estabelecimento próprio, do horário atual em diante. |
 | `PATCH` | `/appointment/edit` | Não | Atualiza um agendamento do cliente, validando CPF, disponibilidade e dados do serviço/estabelecimento. |
 | `PUT` | `/appointment/edit` | Não | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
 | `DELETE` | `/appointment/delete` | Não | Remove um agendamento identificado por `appointmentId` e `cpf`. |
@@ -390,6 +391,25 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"message":"Error to 
 
 ## Agendamentos
 
+### `GET /appointment/establishment/:establishmentId`
+
+Exige autenticação do responsável proprietário do estabelecimento. O parâmetro `establishmentId` deve ser um UUID. A resposta contém os agendamentos com data/hora igual ou posterior ao momento da consulta, em ordem crescente:
+
+```json
+{
+  "appointments": [
+    {
+      "id": "UUID_DO_AGENDAMENTO",
+      "data": "2026-11-04T22:00:00.000Z",
+      "client": {},
+      "service": {}
+    }
+  ]
+}
+```
+
+Retorna `401 Unauthorized` sem sessão válida, `403 Forbidden` se o responsável autenticado não for proprietário, ou `404 Not Found` se o estabelecimento não existir.
+
 ### `POST /appointment/create`
 
 Não exige autenticação:
@@ -478,4 +498,4 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"error":"Error to de
 
 ## Comportamentos ainda não disponíveis
 
-Ainda não existem rotas para listar agendamentos, consultar individualmente um atendimento, confirmar ou cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API já implementa criação, edição e exclusão de agendamentos e serviços, porém a consulta e gestão avançada continuam fora do escopo atual.
+Ainda não existem rotas para consultar individualmente um atendimento, confirmar ou cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API implementa a listagem de agendamentos futuros por estabelecimento, além de criação, edição e exclusão.

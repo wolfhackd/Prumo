@@ -22,6 +22,7 @@ describe("AppointmentRepository", () => {
             },
         };
         const appointment = {
+            findMany: vi.fn().mockResolvedValue(existingAppointments),
             deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
         };
         const db = {
@@ -36,6 +37,26 @@ describe("AppointmentRepository", () => {
             appointment,
         };
     }
+
+    it("lists appointments from the current time in ascending order scoped to owner and establishment", async () => {
+        const { repository, appointment } = setupRepository();
+        const from = new Date("2026-11-04T12:00:00.000Z");
+
+        await repository.getUpcomingByEstablishment("establishment-id", "owner-id", from);
+
+        expect(appointment.findMany).toHaveBeenCalledWith({
+            where: {
+                establishmentId: "establishment-id",
+                establishment: { is: { ownerId: "owner-id" } },
+                data: { gte: from },
+            },
+            orderBy: { data: "asc" },
+            include: {
+                client: true,
+                service: true,
+            },
+        });
+    });
 
     it("checks for overlaps and persists the client and appointment relations in one transaction", async () => {
         const { repository, db, tx } = setupRepository();

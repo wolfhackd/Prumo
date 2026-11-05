@@ -12,6 +12,23 @@ export class AppointmentService{
         private readonly serviceService: ServiceService,
     ){}
 
+    async listUpcomingByEstablishment(establishmentId: string, ownerId: string) {
+        const establishment = await this.establishmentService.getEstablishmentById(establishmentId);
+        if (!establishment) {
+            throw new Error("Establishment not found");
+        }
+
+        if (establishment.ownerId !== ownerId) {
+            throw new Error("User is not the owner of the establishment!");
+        }
+
+        return this.appointmentRepository.getUpcomingByEstablishment(
+            establishmentId,
+            ownerId,
+            new Date(),
+        );
+    }
+
     async create(data: CreateAppointmentInput){
         const establishment = await this.establishmentService.getEstablishmentById(data.establishmentId);
         if(!establishment){

@@ -19,6 +19,10 @@ export const deleteAppointmentSchema = z.object({
     appointmentId: z.string().uuid("Appointment ID must be a valid UUID"),
 })
 
+export const listAppointmentsParamsSchema = z.object({
+    establishmentId: z.uuid("Establishment ID must be a valid UUID"),
+})
+
 const updateAppointmentFieldsSchema = z.object({
     hour: z.string().regex(timeRegex,"Invalid time format (expected HH:MM)").optional(),
     name: z.string().min(3, "Name must be at least 3 characters long").optional(),
@@ -50,4 +54,5 @@ export const updateAppointmentSchema = z.object({
 
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type DeleteAppointmentInput = z.infer<typeof deleteAppointmentSchema>;
+export type ListAppointmentsParams = z.infer<typeof listAppointmentsParamsSchema>;
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;
