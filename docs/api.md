@@ -393,7 +393,7 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"message":"Error to 
 
 ### `GET /appointment/establishment/:establishmentId`
 
-Exige autenticação do responsável proprietário do estabelecimento. O parâmetro `establishmentId` deve ser um UUID. A resposta contém os agendamentos com data/hora igual ou posterior ao momento da consulta, em ordem crescente:
+Exige autenticação do responsável proprietário do estabelecimento. O parâmetro `establishmentId` deve ser um UUID. A resposta contém os agendamentos com status `false` e data/hora igual ou posterior ao momento da consulta, em ordem crescente:
 
 ```json
 {

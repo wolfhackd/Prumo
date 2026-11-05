@@ -38,7 +38,7 @@ describe("AppointmentRepository", () => {
         };
     }
 
-    it("lists appointments from the current time in ascending order scoped to owner and establishment", async () => {
+    it("lists unconfirmed appointments from the current time in ascending order scoped to owner and establishment", async () => {
         const { repository, appointment } = setupRepository();
         const from = new Date("2026-11-04T12:00:00.000Z");
 
@@ -47,6 +47,7 @@ describe("AppointmentRepository", () => {
         expect(appointment.findMany).toHaveBeenCalledWith({
             where: {
                 establishmentId: "establishment-id",
+                status: false,
                 establishment: { is: { ownerId: "owner-id" } },
                 data: { gte: from },
             },

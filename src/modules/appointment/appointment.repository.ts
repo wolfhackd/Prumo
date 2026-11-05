@@ -11,6 +11,7 @@ export class AppointmentRepository{
         return this.db.appointment.findMany({
             where: {
                 establishmentId,
+                status: false,
                 establishment: {
                     is: { ownerId },
                 },
