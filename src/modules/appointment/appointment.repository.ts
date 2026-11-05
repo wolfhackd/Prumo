@@ -29,6 +29,23 @@ export class AppointmentRepository{
         });
     }
 
+    async getById(appointmentId: string) {
+        return this.db.appointment.findUnique({
+            where: { id: appointmentId },
+            select: {
+                id: true,
+                establishmentId: true,
+            },
+        });
+    }
+
+    async confirmById(appointmentId: string) {
+        return this.db.appointment.update({
+            where: { id: appointmentId },
+            data: { status: true },
+        });
+    }
+
     async create(
         data: CreateAppointmentInput,
         appointmentDate: Date,

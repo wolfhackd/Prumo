@@ -19,6 +19,10 @@ export const deleteAppointmentSchema = z.object({
     appointmentId: z.string().uuid("Appointment ID must be a valid UUID"),
 })
 
+export const confirmAppointmentSchema = z.object({
+    appointmentId: z.string().uuid("Appointment ID must be a valid UUID"),
+})
+
 export const listAppointmentsParamsSchema = z.object({
     establishmentId: z.uuid("Establishment ID must be a valid UUID"),
 })
@@ -54,5 +58,6 @@ export const updateAppointmentSchema = z.object({
 
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type DeleteAppointmentInput = z.infer<typeof deleteAppointmentSchema>;
+export type ConfirmAppointmentInput = z.infer<typeof confirmAppointmentSchema>;
 export type ListAppointmentsParams = z.infer<typeof listAppointmentsParamsSchema>;
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;

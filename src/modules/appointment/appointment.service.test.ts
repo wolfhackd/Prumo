@@ -28,6 +28,8 @@ describe("AppointmentService", () => {
         appointmentRepository = {
             create: vi.fn(),
             getUpcomingByEstablishment: vi.fn(),
+            getById: vi.fn(),
+            confirmById: vi.fn(),
             getByIdAndCpf: vi.fn(),
             updateByIdAndCpf: vi.fn(),
             deleteByIdAndCpf: vi.fn(),
@@ -87,6 +89,51 @@ describe("AppointmentService", () => {
             service.listUpcomingByEstablishment(input.establishmentId, "owner-id"),
         ).rejects.toThrow("User is not the owner of the establishment!");
         expect(appointmentRepository.getUpcomingByEstablishment).not.toHaveBeenCalled();
+    });
+
+    it("confirms an appointment only for its establishment owner", async () => {
+        const appointment = {
+            id: "appointment-id",
+            establishmentId: input.establishmentId,
+        };
+        const confirmedAppointment = { id: appointment.id, status: true };
+        appointmentRepository.getById.mockResolvedValue(appointment as never);
+        establishmentService.getEstablishmentById.mockResolvedValue({
+            id: input.establishmentId,
+            ownerId: "owner-id",
+        } as never);
+        appointmentRepository.confirmById.mockResolvedValue(confirmedAppointment as never);
+
+        const result = await service.confirm({ appointmentId: appointment.id }, "owner-id");
+
+        expect(appointmentRepository.getById).toHaveBeenCalledWith(appointment.id);
+        expect(appointmentRepository.confirmById).toHaveBeenCalledWith(appointment.id);
+        expect(result).toBe(confirmedAppointment);
+    });
+
+    it("rejects confirming an appointment for another establishment owner", async () => {
+        appointmentRepository.getById.mockResolvedValue({
+            id: "appointment-id",
+            establishmentId: input.establishmentId,
+        } as never);
+        establishmentService.getEstablishmentById.mockResolvedValue({
+            id: input.establishmentId,
+            ownerId: "another-owner",
+        } as never);
+
+        await expect(
+            service.confirm({ appointmentId: "appointment-id" }, "owner-id"),
+        ).rejects.toThrow("User is not the owner of the establishment!");
+        expect(appointmentRepository.confirmById).not.toHaveBeenCalled();
+    });
+
+    it("returns not found when confirming a missing appointment", async () => {
+        appointmentRepository.getById.mockResolvedValue(null);
+
+        await expect(
+            service.confirm({ appointmentId: "appointment-id" }, "owner-id"),
+        ).rejects.toThrow("Appointment not found");
+        expect(establishmentService.getEstablishmentById).not.toHaveBeenCalled();
     });
 
     it("creates an appointment for the next occurrence and returns the persisted record", async () => {

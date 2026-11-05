@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { CreateAppointmentInput, DeleteAppointmentInput, ListAppointmentsParams, UpdateAppointmentInput } from "./appointment.types.js";
+import type { ConfirmAppointmentInput, CreateAppointmentInput, DeleteAppointmentInput, ListAppointmentsParams, UpdateAppointmentInput } from "./appointment.types.js";
 import type { AppointmentService } from "./appointment.service.js";
 
 
@@ -51,6 +51,30 @@ export class AppointmentController{
             reply.status(400).send({error:'Error to create appointment', message: error.message});
         }
 
+    }
+
+    async confirmAppointment(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const data = request.body as ConfirmAppointmentInput;
+            const appointment = await this.appointmentService.confirm(data, request.user.id);
+
+            return reply.status(200).send({
+                message: "Appointment confirmed successfully",
+                appointment,
+            });
+        } catch (error: any) {
+            const message = error.message;
+            const statusCode = message === "Appointment not found" || message === "Establishment not found"
+                ? 404
+                : message === "User is not the owner of the establishment!"
+                    ? 403
+                    : 400;
+
+            return reply.status(statusCode).send({
+                error: "Error to confirm appointment",
+                message,
+            });
+        }
     }
 
     async updateAppointment(request: FastifyRequest, reply: FastifyReply) {

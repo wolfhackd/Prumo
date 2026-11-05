@@ -33,6 +33,7 @@ Os exemplos de resposta abaixo refletem o formato enviado pelos controllers. Err
 | `DELETE` | `/service/delete` | Sim | Remove um serviço pertencente ao responsável autenticado. |
 | `POST` | `/appointment/create` | Não | Cria um agendamento após validar serviço, funcionamento e conflitos. |
 | `GET` | `/appointment/establishment/:establishmentId` | Sim | Lista agendamentos futuros do estabelecimento próprio, do horário atual em diante. |
+| `PATCH` | `/appointment/confirm` | Sim | Confirma um agendamento do estabelecimento próprio, alterando `status` para `true`. |
 | `PATCH` | `/appointment/edit` | Não | Atualiza um agendamento do cliente, validando CPF, disponibilidade e dados do serviço/estabelecimento. |
 | `PUT` | `/appointment/edit` | Não | Alias de atualização; usa a mesma validação e lógica do `PATCH`. |
 | `DELETE` | `/appointment/delete` | Não | Remove um agendamento identificado por `appointmentId` e `cpf`. |
@@ -410,6 +411,30 @@ Exige autenticação do responsável proprietário do estabelecimento. O parâme
 
 Retorna `401 Unauthorized` sem sessão válida, `403 Forbidden` se o responsável autenticado não for proprietário, ou `404 Not Found` se o estabelecimento não existir.
 
+### `PATCH /appointment/confirm`
+
+Exige sessão do responsável proprietário do estabelecimento associado ao agendamento. Envie o identificador do agendamento:
+
+```json
+{
+  "appointmentId": "UUID_DO_AGENDAMENTO"
+}
+```
+
+O `appointmentId` deve ser um UUID válido. Sucesso: `200 OK`; a resposta inclui o registro atualizado com `status: true`:
+
+```json
+{
+  "message": "Appointment confirmed successfully",
+  "appointment": {
+    "id": "UUID_DO_AGENDAMENTO",
+    "status": true
+  }
+}
+```
+
+Retorna `401 Unauthorized` sem sessão válida, `403 Forbidden` se o responsável não for proprietário do estabelecimento, ou `404 Not Found` se o agendamento ou estabelecimento não existir.
+
 ### `POST /appointment/create`
 
 Não exige autenticação:
@@ -498,4 +523,4 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"error":"Error to de
 
 ## Comportamentos ainda não disponíveis
 
-Ainda não existem rotas para consultar individualmente um atendimento, confirmar ou cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API implementa a listagem de agendamentos futuros por estabelecimento, além de criação, edição e exclusão.
+Ainda não existem rotas para consultar individualmente um atendimento, cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API implementa a listagem de agendamentos futuros por estabelecimento, além de criação, confirmação, edição e exclusão.

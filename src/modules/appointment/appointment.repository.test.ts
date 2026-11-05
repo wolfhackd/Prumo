@@ -23,6 +23,8 @@ describe("AppointmentRepository", () => {
         };
         const appointment = {
             findMany: vi.fn().mockResolvedValue(existingAppointments),
+            findUnique: vi.fn(),
+            update: vi.fn(),
             deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
         };
         const db = {
@@ -57,6 +59,32 @@ describe("AppointmentRepository", () => {
                 service: true,
             },
         });
+    });
+
+    it("loads an appointment by ID before confirming it", async () => {
+        const { repository, appointment } = setupRepository();
+        appointment.findUnique.mockResolvedValue({ id: "appointment-id", establishmentId: "establishment-id" });
+
+        await repository.getById("appointment-id");
+
+        expect(appointment.findUnique).toHaveBeenCalledWith({
+            where: { id: "appointment-id" },
+            select: { id: true, establishmentId: true },
+        });
+    });
+
+    it("updates the appointment status to confirmed", async () => {
+        const confirmedAppointment = { id: "appointment-id", status: true };
+        const { repository, appointment } = setupRepository();
+        appointment.update.mockResolvedValue(confirmedAppointment);
+
+        const result = await repository.confirmById("appointment-id");
+
+        expect(appointment.update).toHaveBeenCalledWith({
+            where: { id: "appointment-id" },
+            data: { status: true },
+        });
+        expect(result).toBe(confirmedAppointment);
     });
 
     it("checks for overlaps and persists the client and appointment relations in one transaction", async () => {

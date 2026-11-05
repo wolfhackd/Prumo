@@ -1,7 +1,7 @@
 import type { AppointmentRepository } from "./appointment.repository.js";
 import type { EstablishmentService } from "../establishment/establishment.service.js";
 import type { ServiceService } from "../service/service.service.js";
-import type { CreateAppointmentInput, DeleteAppointmentInput, UpdateAppointmentInput } from "./appointment.types.js";
+import type { ConfirmAppointmentInput, CreateAppointmentInput, DeleteAppointmentInput, UpdateAppointmentInput } from "./appointment.types.js";
 import { timeToMinutes } from "../../utils/time.js";
 
 
@@ -27,6 +27,28 @@ export class AppointmentService{
             ownerId,
             new Date(),
         );
+    }
+
+    async confirm(data: ConfirmAppointmentInput, ownerId: string) {
+        const appointment = await this.appointmentRepository.getById(data.appointmentId);
+        if (!appointment) {
+            throw new Error("Appointment not found");
+        }
+
+        if (!appointment.establishmentId) {
+            throw new Error("Establishment not found");
+        }
+
+        const establishment = await this.establishmentService.getEstablishmentById(appointment.establishmentId);
+        if (!establishment) {
+            throw new Error("Establishment not found");
+        }
+
+        if (establishment.ownerId !== ownerId) {
+            throw new Error("User is not the owner of the establishment!");
+        }
+
+        return this.appointmentRepository.confirmById(appointment.id);
     }
 
     async create(data: CreateAppointmentInput){
