@@ -186,6 +186,13 @@ describe("AppointmentService", () => {
         expect(appointmentRepository.create).not.toHaveBeenCalled();
     });
 
+    it("rejects appointment times that are not on a 30-minute increment", async () => {
+        await expect(service.create({ ...input, hour: "10:15" })).rejects.toThrow(
+            "Appointment time must use 30-minute increments (HH:00 or HH:30)",
+        );
+        expect(appointmentRepository.create).not.toHaveBeenCalled();
+    });
+
     it("updates an appointment when the client owns it", async () => {
         const updateInput = {
             appointmentId: "appointment-id",
@@ -212,6 +219,22 @@ describe("AppointmentService", () => {
                 establishmentId: input.establishmentId,
             }),
         );
+    });
+
+    it("rejects rescheduling an appointment to a time outside 30-minute increments", async () => {
+        appointmentRepository.getByIdAndCpf.mockResolvedValue({
+            id: "appointment-id",
+            data: new Date("2026-10-05T10:00:00.000Z"),
+            serviceId: input.serviceId,
+            establishmentId: input.establishmentId,
+        } as never);
+
+        await expect(service.update({
+            appointmentId: "appointment-id",
+            cpf: input.cpf,
+            hour: "10:15",
+        })).rejects.toThrow("Appointment time must use 30-minute increments (HH:00 or HH:30)");
+        expect(appointmentRepository.updateByIdAndCpf).not.toHaveBeenCalled();
     });
 
     it("deletes an appointment only when its ID and the client's CPF match", async () => {

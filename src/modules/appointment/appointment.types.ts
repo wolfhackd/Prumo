@@ -1,12 +1,12 @@
 import {z} from 'zod';
 
 
-const timeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+const timeRegex = /^(?:[01]\d|2[0-3]):(?:00|30)$/;
 
 export const createAppointmentSchema = z.object({
     establishmentId: z.string().uuid("Establishment ID must be a valid UUID"),
     serviceId: z.string().uuid("Service ID must be a valid UUID"),
-    hour: z.string().regex(timeRegex,"Invalid time format (expected HH:MM)"),
+    hour: z.string().regex(timeRegex, "Appointment time must use 30-minute increments (HH:00 or HH:30)"),
     name: z.string().min(3, "Name must be at least 3 characters long"),
     cpf: z.string().min(11, "Invalid CPF length").max(14),
     phone: z.string().min(10, "Invalid phone number"),
@@ -28,7 +28,7 @@ export const listAppointmentsParamsSchema = z.object({
 })
 
 const updateAppointmentFieldsSchema = z.object({
-    hour: z.string().regex(timeRegex,"Invalid time format (expected HH:MM)").optional(),
+    hour: z.string().regex(timeRegex, "Appointment time must use 30-minute increments (HH:00 or HH:30)").optional(),
     name: z.string().min(3, "Name must be at least 3 characters long").optional(),
     phone: z.string().min(10, "Invalid phone number").optional(),
     email: z.string().email("Invalid email format").optional(),

@@ -452,7 +452,7 @@ Não exige autenticação:
 }
 ```
 
-Todos os campos são obrigatórios. `establishmentId` e `serviceId` precisam ser UUIDs; `hour` usa `HH:MM`; `dayOfWeek` é um inteiro de `1` (segunda-feira) a `7` (domingo); `name` exige ao menos 3 caracteres; CPF aceita de 11 a 14 caracteres; telefone exige ao menos 10 caracteres; e `email` precisa ter formato válido.
+Todos os campos são obrigatórios. `establishmentId` e `serviceId` precisam ser UUIDs; `hour` deve ser informado em intervalos de 30 minutos (`HH:00` ou `HH:30`, por exemplo `07:00`, `07:30` ou `09:00`); `dayOfWeek` é um inteiro de `1` (segunda-feira) a `7` (domingo); `name` exige ao menos 3 caracteres; CPF aceita de 11 a 14 caracteres; telefone exige ao menos 10 caracteres; e `email` precisa ter formato válido.
 
 O sistema valida que o estabelecimento e o serviço existem, que o serviço pertence ao estabelecimento, que o estabelecimento abre naquele dia e que o serviço cabe integralmente em um dos intervalos de funcionamento. A data é calculada para a próxima ocorrência futura do dia e hora informados, em UTC; se a hora já passou no dia atual, o agendamento é direcionado para a semana seguinte.
 
@@ -481,7 +481,7 @@ Não exige autenticação. O cliente identifica o agendamento pelo `appointmentI
 }
 ```
 
-Campos aceitos: `hour`, `dayOfWeek`, `serviceId`, `establishmentId`, `name`, `phone`, `email`; pelo menos um deve ser enviado. Horário, dia da semana, IDs e dados do cliente seguem as mesmas validações descritas para criação. Quando `hour` ou `dayOfWeek` são alterados, o sistema recalcula a próxima data válida e valida abertura do estabelecimento e pertencimento do serviço ao estabelecimento. Atualmente, a edição não verifica conflitos com outros agendamentos; alterações somente de `serviceId` ou `establishmentId` também não passam por essas validações de funcionamento/compatibilidade. Sucesso: `200 OK`, com o registro atualizado:
+Campos aceitos: `hour`, `dayOfWeek`, `serviceId`, `establishmentId`, `name`, `phone`, `email`; pelo menos um deve ser enviado. Horário, dia da semana, IDs e dados do cliente seguem as mesmas validações descritas para criação, incluindo horários em intervalos de 30 minutos (`HH:00` ou `HH:30`). Quando `hour` ou `dayOfWeek` são alterados, o sistema recalcula a próxima data válida e valida abertura do estabelecimento e pertencimento do serviço ao estabelecimento. Atualmente, a edição não verifica conflitos com outros agendamentos; alterações somente de `serviceId` ou `establishmentId` também não passam por essas validações de funcionamento/compatibilidade. Sucesso: `200 OK`, com o registro atualizado:
 
 ```json
 {

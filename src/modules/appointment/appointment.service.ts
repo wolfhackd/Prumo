@@ -71,7 +71,7 @@ export class AppointmentService{
             throw new Error('Establishment is not open on this day!');
         }
 
-        const appointmentStart = timeToMinutes(data.hour);
+        const appointmentStart = this.validateAppointmentTime(data.hour);
         const serviceDuration = service.duration;
         const appointmentEnd = appointmentStart + serviceDuration;
 
@@ -110,6 +110,7 @@ export class AppointmentService{
         const effectiveHour = updates.hour ?? this.formatHour(currentAppointment.data);
 
         if (updates.hour !== undefined || updates.dayOfWeek !== undefined) {
+            this.validateAppointmentTime(effectiveHour);
             const appointmentDate = this.getNextOccurrence(effectiveDayOfWeek, effectiveHour, currentAppointment.data);
             updatePayload.data = appointmentDate;
 
@@ -193,6 +194,15 @@ export class AppointmentService{
         const hours = String(date.getUTCHours()).padStart(2, "0");
         const minutes = String(date.getUTCMinutes()).padStart(2, "0");
         return `${hours}:${minutes}`;
+    }
+
+    private validateAppointmentTime(hour: string): number {
+        const minutes = timeToMinutes(hour);
+        if (minutes % 30 !== 0) {
+            throw new Error("Appointment time must use 30-minute increments (HH:00 or HH:30)");
+        }
+
+        return minutes;
     }
 
     private getNextOccurrence(dayOfWeek: number, hour: string, referenceDate: Date = new Date()): Date {

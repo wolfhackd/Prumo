@@ -170,6 +170,33 @@ describe("appointment routes", () => {
         expect(repository.getById).not.toHaveBeenCalled();
     });
 
+    it("rejects appointment times that are not on a 30-minute increment", async () => {
+        const createResponse = await app.inject({
+            method: "POST",
+            url: "/create",
+            payload: {
+                establishmentId,
+                serviceId: "00000000-0000-4000-8000-000000000002",
+                hour: "10:15",
+                dayOfWeek: 1,
+                name: "Cliente Teste",
+                cpf,
+                phone: "11999999999",
+                email: "cliente@example.com",
+            },
+        });
+        const updateResponse = await app.inject({
+            method: "PATCH",
+            url: "/edit",
+            payload: { appointmentId, cpf, hour: "10:15" },
+        });
+
+        expect(createResponse.statusCode).toBe(400);
+        expect(updateResponse.statusCode).toBe(400);
+        expect(repository.create).not.toHaveBeenCalled();
+        expect(repository.getByIdAndCpf).not.toHaveBeenCalled();
+    });
+
     it("updates an appointment by appointment ID and client CPF", async () => {
         const response = await app.inject({
             method: "PATCH",
