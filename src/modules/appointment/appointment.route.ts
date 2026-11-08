@@ -4,7 +4,7 @@ import { AppointmentService } from "./appointment.service.js";
 import { service as establishmentService  } from "./../establishment/establishment.route.js"
 import { service as serviceService  } from "./../service/service.route.js"
 import { AppointmentRepository } from "./appointment.repository.js";
-import { confirmAppointmentSchema, createAppointmentSchema, deleteAppointmentSchema, listAppointmentsParamsSchema, updateAppointmentSchema } from "./appointment.types.js";
+import { confirmAppointmentSchema, createAppointmentSchema, deleteAppointmentSchema, listAppointmentsParamsSchema, listAppointmentsQuerySchema, updateAppointmentSchema } from "./appointment.types.js";
 import { authMiddleware } from "../../middleware/middleware.js";
 
 const repository = new AppointmentRepository()
@@ -17,8 +17,9 @@ export const appointmentRoute = (app: FastifyInstance) =>{
         schema: {
             tags: ["Agendamentos"],
             params: listAppointmentsParamsSchema,
+            querystring: listAppointmentsQuerySchema,
         },
-    }, controller.listUpcomingByEstablishment.bind(controller));
+    }, controller.listByEstablishment.bind(controller));
     app.post('/create',{
         schema:{
             tags: ["Agendamentos"],

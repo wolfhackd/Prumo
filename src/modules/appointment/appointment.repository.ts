@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
-import type { CreateAppointmentInput } from "./appointment.types.js";
+import type { CreateAppointmentInput, ListAppointmentsQuery } from "./appointment.types.js";
 
 
 export class AppointmentRepository{
@@ -7,17 +7,24 @@ export class AppointmentRepository{
         private readonly db: typeof prisma = prisma
     ){}
 
-    async getUpcomingByEstablishment(establishmentId: string, ownerId: string, from: Date) {
+    async getByEstablishment(establishmentId: string, ownerId: string, filters: ListAppointmentsQuery) {
+        const startOfDay = filters.date
+            ? new Date(`${filters.date}T00:00:00.000Z`)
+            : undefined;
+        const nextDayStart = startOfDay
+            ? new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
+            : undefined;
+
         return this.db.appointment.findMany({
             where: {
                 establishmentId,
-                status: false,
                 establishment: {
                     is: { ownerId },
                 },
-                data: {
-                    gte: from,
-                },
+                ...(filters.status !== undefined ? { status: filters.status } : {}),
+                ...(startOfDay && nextDayStart
+                    ? { data: { gte: startOfDay, lt: nextDayStart } }
+                    : {}),
             },
             orderBy: {
                 data: "asc",

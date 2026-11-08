@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { ConfirmAppointmentInput, CreateAppointmentInput, DeleteAppointmentInput, ListAppointmentsParams, UpdateAppointmentInput } from "./appointment.types.js";
+import type { ConfirmAppointmentInput, CreateAppointmentInput, DeleteAppointmentInput, ListAppointmentsParams, ListAppointmentsQuery, UpdateAppointmentInput } from "./appointment.types.js";
 import type { AppointmentService } from "./appointment.service.js";
 
 
@@ -10,15 +10,17 @@ export class AppointmentController{
        
     ){}
 
-    async listUpcomingByEstablishment(
+    async listByEstablishment(
         request: FastifyRequest,
         reply: FastifyReply,
     ) {
         try {
             const { establishmentId } = request.params as ListAppointmentsParams;
-            const appointments = await this.appointmentService.listUpcomingByEstablishment(
+            const filters = request.query as ListAppointmentsQuery;
+            const appointments = await this.appointmentService.listByEstablishment(
                 establishmentId,
                 request.user.id,
+                filters,
             );
 
             return reply.status(200).send({ appointments });

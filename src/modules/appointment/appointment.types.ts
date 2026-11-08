@@ -27,6 +27,11 @@ export const listAppointmentsParamsSchema = z.object({
     establishmentId: z.uuid("Establishment ID must be a valid UUID"),
 })
 
+export const listAppointmentsQuerySchema = z.object({
+    status: z.enum(["true", "false"]).transform((status) => status === "true").optional(),
+    date: z.iso.date().optional(),
+})
+
 const updateAppointmentFieldsSchema = z.object({
     hour: z.string().regex(timeRegex, "Appointment time must use 30-minute increments (HH:00 or HH:30)").optional(),
     name: z.string().min(3, "Name must be at least 3 characters long").optional(),
@@ -60,4 +65,5 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type DeleteAppointmentInput = z.infer<typeof deleteAppointmentSchema>;
 export type ConfirmAppointmentInput = z.infer<typeof confirmAppointmentSchema>;
 export type ListAppointmentsParams = z.infer<typeof listAppointmentsParamsSchema>;
+export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;

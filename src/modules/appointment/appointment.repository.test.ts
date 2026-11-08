@@ -40,18 +40,41 @@ describe("AppointmentRepository", () => {
         };
     }
 
-    it("lists unconfirmed appointments from the current time in ascending order scoped to owner and establishment", async () => {
+    it("lists all appointments in ascending order scoped to owner and establishment by default", async () => {
         const { repository, appointment } = setupRepository();
-        const from = new Date("2026-11-04T12:00:00.000Z");
 
-        await repository.getUpcomingByEstablishment("establishment-id", "owner-id", from);
+        await repository.getByEstablishment("establishment-id", "owner-id", {});
 
         expect(appointment.findMany).toHaveBeenCalledWith({
             where: {
                 establishmentId: "establishment-id",
-                status: false,
                 establishment: { is: { ownerId: "owner-id" } },
-                data: { gte: from },
+            },
+            orderBy: { data: "asc" },
+            include: {
+                client: true,
+                service: true,
+            },
+        });
+    });
+
+    it("filters by status and the full UTC day when requested", async () => {
+        const { repository, appointment } = setupRepository();
+
+        await repository.getByEstablishment("establishment-id", "owner-id", {
+            status: false,
+            date: "2026-11-04",
+        });
+
+        expect(appointment.findMany).toHaveBeenCalledWith({
+            where: {
+                establishmentId: "establishment-id",
+                establishment: { is: { ownerId: "owner-id" } },
+                status: false,
+                data: {
+                    gte: new Date("2026-11-04T00:00:00.000Z"),
+                    lt: new Date("2026-11-05T00:00:00.000Z"),
+                },
             },
             orderBy: { data: "asc" },
             include: {

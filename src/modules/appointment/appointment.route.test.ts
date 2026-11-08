@@ -7,7 +7,7 @@ import { TokenService } from "../../utils/tokenService.js";
 
 const repository = vi.hoisted(() => ({
     create: vi.fn(),
-    getUpcomingByEstablishment: vi.fn(),
+    getByEstablishment: vi.fn(),
     getById: vi.fn(),
     confirmById: vi.fn(),
     getByIdAndCpf: vi.fn(),
@@ -22,7 +22,7 @@ const establishment = vi.hoisted(() => ({
 vi.mock("./appointment.repository", () => ({
     AppointmentRepository: class {
         create = repository.create;
-        getUpcomingByEstablishment = repository.getUpcomingByEstablishment;
+        getByEstablishment = repository.getByEstablishment;
         getById = repository.getById;
         confirmById = repository.confirmById;
         getByIdAndCpf = repository.getByIdAndCpf;
@@ -46,7 +46,7 @@ describe("appointment routes", () => {
         vi.resetAllMocks();
         vi.stubEnv("JWT_SECRET", "appointment-route-test-secret");
         establishment.getEstablishmentById.mockResolvedValue({ id: establishmentId, ownerId });
-        repository.getUpcomingByEstablishment.mockResolvedValue([]);
+        repository.getByEstablishment.mockResolvedValue([]);
         repository.getById.mockResolvedValue({ id: appointmentId, establishmentId });
         repository.confirmById.mockResolvedValue({ id: appointmentId, status: true });
         repository.getByIdAndCpf.mockResolvedValue({
@@ -77,12 +77,12 @@ describe("appointment routes", () => {
         });
 
         expect(response.statusCode).toBe(401);
-        expect(repository.getUpcomingByEstablishment).not.toHaveBeenCalled();
+        expect(repository.getByEstablishment).not.toHaveBeenCalled();
     });
 
-    it("lists upcoming appointments for the authenticated establishment owner", async () => {
+    it("lists all appointments by default for the authenticated establishment owner", async () => {
         const appointments = [{ id: appointmentId }];
-        repository.getUpcomingByEstablishment.mockResolvedValue(appointments);
+        repository.getByEstablishment.mockResolvedValue(appointments);
         const response = await app.inject({
             method: "GET",
             url: `/establishment/${establishmentId}`,
@@ -91,11 +91,37 @@ describe("appointment routes", () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.json()).toEqual({ appointments });
-        expect(repository.getUpcomingByEstablishment).toHaveBeenCalledWith(
+        expect(repository.getByEstablishment).toHaveBeenCalledWith(
             establishmentId,
             ownerId,
-            expect.any(Date),
+            {},
         );
+    });
+
+    it("passes status and date filters to the appointment listing", async () => {
+        const response = await app.inject({
+            method: "GET",
+            url: `/establishment/${establishmentId}?status=false&date=2026-11-04`,
+            cookies: { token: TokenService.generateToken({ id: ownerId }) },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(repository.getByEstablishment).toHaveBeenCalledWith(
+            establishmentId,
+            ownerId,
+            { status: false, date: "2026-11-04" },
+        );
+    });
+
+    it("rejects invalid listing filters", async () => {
+        const response = await app.inject({
+            method: "GET",
+            url: `/establishment/${establishmentId}?status=invalid&date=2026-02-30`,
+            cookies: { token: TokenService.generateToken({ id: ownerId }) },
+        });
+
+        expect(response.statusCode).toBe(400);
+        expect(repository.getByEstablishment).not.toHaveBeenCalled();
     });
 
     it("does not list appointments for an establishment owned by another user", async () => {
@@ -110,7 +136,7 @@ describe("appointment routes", () => {
         });
 
         expect(response.statusCode).toBe(403);
-        expect(repository.getUpcomingByEstablishment).not.toHaveBeenCalled();
+        expect(repository.getByEstablishment).not.toHaveBeenCalled();
     });
 
     it("requires authentication to confirm an appointment", async () => {

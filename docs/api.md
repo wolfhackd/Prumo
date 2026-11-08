@@ -394,7 +394,21 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"message":"Error to 
 
 ### `GET /appointment/establishment/:establishmentId`
 
-Exige autenticação do responsável proprietário do estabelecimento. O parâmetro `establishmentId` deve ser um UUID. A resposta contém os agendamentos com status `false` e data/hora igual ou posterior ao momento da consulta, em ordem crescente:
+Exige autenticação do responsável proprietário do estabelecimento. O parâmetro `establishmentId` deve ser um UUID. Os filtros de consulta são opcionais:
+
+- `status`: `true` ou `false`; sem esse filtro, inclui os dois status.
+- `date`: dia no formato `YYYY-MM-DD`; retorna os agendamentos daquele dia inteiro (UTC). Sem esse filtro, inclui todas as datas.
+
+Exemplos:
+
+```text
+GET /appointment/establishment/UUID_DO_ESTABELECIMENTO
+GET /appointment/establishment/UUID_DO_ESTABELECIMENTO?status=false
+GET /appointment/establishment/UUID_DO_ESTABELECIMENTO?date=2026-11-04
+GET /appointment/establishment/UUID_DO_ESTABELECIMENTO?status=true&date=2026-11-04
+```
+
+Os resultados são ordenados pela data/hora em ordem crescente:
 
 ```json
 {
@@ -402,6 +416,7 @@ Exige autenticação do responsável proprietário do estabelecimento. O parâme
     {
       "id": "UUID_DO_AGENDAMENTO",
       "data": "2026-11-04T22:00:00.000Z",
+      "status": false,
       "client": {},
       "service": {}
     }
@@ -523,4 +538,4 @@ Erros de negócio retornam `400 Bad Request`, por exemplo `{"error":"Error to de
 
 ## Comportamentos ainda não disponíveis
 
-Ainda não existem rotas para consultar individualmente um atendimento, cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API implementa a listagem de agendamentos futuros por estabelecimento, além de criação, confirmação, edição e exclusão.
+Ainda não existem rotas para consultar individualmente um atendimento, cancelar por status, listar clientes, consultar horários disponíveis em endpoint específico ou enviar notificações. A API implementa a listagem de agendamentos por estabelecimento, com filtros opcionais de status e dia, além de criação, confirmação, edição e exclusão.

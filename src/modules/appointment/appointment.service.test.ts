@@ -27,7 +27,7 @@ describe("AppointmentService", () => {
 
         appointmentRepository = {
             create: vi.fn(),
-            getUpcomingByEstablishment: vi.fn(),
+            getByEstablishment: vi.fn(),
             getById: vi.fn(),
             confirmById: vi.fn(),
             getByIdAndCpf: vi.fn(),
@@ -59,22 +59,22 @@ describe("AppointmentService", () => {
         vi.useRealTimers();
     });
 
-    it("lists upcoming appointments only for the establishment owner", async () => {
+    it("lists appointments with the supplied filters only for the establishment owner", async () => {
         establishmentService.getEstablishmentById.mockResolvedValue({
             id: input.establishmentId,
             ownerId: "owner-id",
         } as never);
-        const now = new Date();
         const appointments = [{ id: "appointment-id" }];
-        appointmentRepository.getUpcomingByEstablishment.mockResolvedValue(appointments as never);
+        appointmentRepository.getByEstablishment.mockResolvedValue(appointments as never);
+        const filters = { status: true, date: "2026-10-04" };
 
-        const result = await service.listUpcomingByEstablishment(input.establishmentId, "owner-id");
+        const result = await service.listByEstablishment(input.establishmentId, "owner-id", filters);
 
         expect(establishmentService.getEstablishmentById).toHaveBeenCalledWith(input.establishmentId);
-        expect(appointmentRepository.getUpcomingByEstablishment).toHaveBeenCalledWith(
+        expect(appointmentRepository.getByEstablishment).toHaveBeenCalledWith(
             input.establishmentId,
             "owner-id",
-            now,
+            filters,
         );
         expect(result).toBe(appointments);
     });
@@ -86,9 +86,9 @@ describe("AppointmentService", () => {
         } as never);
 
         await expect(
-            service.listUpcomingByEstablishment(input.establishmentId, "owner-id"),
+            service.listByEstablishment(input.establishmentId, "owner-id", {}),
         ).rejects.toThrow("User is not the owner of the establishment!");
-        expect(appointmentRepository.getUpcomingByEstablishment).not.toHaveBeenCalled();
+        expect(appointmentRepository.getByEstablishment).not.toHaveBeenCalled();
     });
 
     it("confirms an appointment only for its establishment owner", async () => {

@@ -61,5 +61,5 @@ server.listen({ port: PORT as number, host: '0.0.0.0' }, (err, address)=>{
         return;
     }
     console.log(`Server listening at ${address} on port ${PORT}`);
-    console.log(`Swagger documentation is available at http://localhost:${PORT}/documentation`);
+    console.log(`Swagger documentation is available at ${address}/documentation`);
 })
